@@ -10,6 +10,7 @@ import { apiMesto } from '../utils/api.js'
 import EditProfilePopup from './EditProfilePopup.jsx'
 import EditAvatarPopup from './EditAvatarPopup.jsx'
 import { AddPlacePopup } from './AddPlacePopup.jsx'
+import { Route } from 'react-router-dom'
 
 function App() {
   const [isLoading, setIsLoading] = React.useState(false)
@@ -131,6 +132,9 @@ function App() {
   return (
     <div className="root">
       <CurrentUserContext.Provider value={currentUser}>
+        {/* <Route path='/'></Route>
+        <Route path='/sign-in'></Route>
+        <Route path='/sign-up'></Route> */}
         <Header />
         <Main
           cards={cards}
@@ -142,6 +146,14 @@ function App() {
           onCardDelete={handleCardDelete}
         />
         <Footer />
+
+        <div className='signup'>
+          <h2 className='signup__header'>Регистрация</h2>
+          <input type="form" className='signup__form_email' />
+          <input type="form" className='signup__form_password' />
+        </div>
+
+
 
         <EditProfilePopup
           isOpen={isEditProfilePopupOpen}
