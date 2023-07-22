@@ -1,0 +1,13 @@
+.header__button{
+  background-color: #000;
+  border: none;
+  color: #fff;
+  font-family: 'Inter', Arial, Helvetica, sans-serif;
+  align-items: center;
+  font-size: 18px;
+}
+
+.header__button:hover{
+  opacity: 0.6;
+  transition: 0.4s;
+}
