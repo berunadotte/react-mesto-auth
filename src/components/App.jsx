@@ -19,7 +19,11 @@ import registrationError from '../images/registration_error.svg'
 import registrationSucces from '../images/registration_succes.svg'
 
 function App() {
-  const [isLoading, setIsLoading] = React.useState(false)
+  const [isLoadingAvatarPopup, setIsLoadingAvatarPopup] = React.useState(false)
+  const [isLoadingProfilePopup, setIsLoadingProfilePopup] =
+    React.useState(false)
+  const [isLoadingAddPlacePopup, setIsLoadingAddPlacePopup] =
+    React.useState(false)
   const [isEditProfilePopupOpen, setIsEditProfilePopupOpen] =
     React.useState(false)
   const [isAddPlacePopupOpen, setIsAddPlacePopupOpen] = React.useState(false)
@@ -82,11 +86,17 @@ function App() {
   }
 
   function handleSubmit(request) {
-    setIsLoading(true)
+    setIsLoadingAddPlacePopup(true)
+    setIsLoadingProfilePopup(true)
+    setIsLoadingAvatarPopup(true)
     request()
       .then(closeAllPopup)
       .catch(console.error)
-      .finally(() => setIsLoading(false))
+      .finally(() => {
+        setIsLoadingAddPlacePopup(false)
+        setIsLoadingProfilePopup(false)
+        setIsLoadingAvatarPopup(false)
+      })
   }
 
   function handleUpdateUser(inputValues) {
@@ -131,7 +141,9 @@ function App() {
 
   React.useEffect(() => {
     checkToken()
+  }, [])
 
+  React.useEffect(() => {
     if (loggedIn) {
       Promise.all([apiMesto.loadNameAndInfo(), apiMesto.getInitialCards()])
         .then((data) => {
@@ -146,7 +158,6 @@ function App() {
 
   function checkToken() {
     const jwt = localStorage.getItem('jwt')
-
     if (jwt) {
       authApi
         .checkToken(jwt)
@@ -234,7 +245,16 @@ function App() {
               />
             }
           />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route
+            path="*"
+            element={
+              loggedIn ? (
+                <Navigate to="/" replace />
+              ) : (
+                <Navigate to="/sign-in" replace />
+              )
+            }
+          />
         </Routes>
 
         <Footer />
@@ -243,23 +263,21 @@ function App() {
           isOpen={isEditProfilePopupOpen}
           onClose={closeAllPopup}
           onUpdateUser={handleUpdateUser}
-          isLoading={isLoading}
-          buttonText={isLoading ? 'Сохранение...' : 'Сохранить'}
+          isLoading={isLoadingProfilePopup}
         />
 
         <EditAvatarPopup
           isOpen={isEditAvatarPopupOpen}
           onClose={closeAllPopup}
           onUpdateAvatar={handleUpdateAvatar}
-          isLoading={isLoading}
-          buttonText={isLoading ? 'Сохранение...' : 'Сохранить'}
+          isLoading={isLoadingAvatarPopup}
         />
 
         <AddPlacePopup
           isOpen={isAddPlacePopupOpen}
           onClose={closeAllPopup}
           onAddPlace={handleAddPlaceSubmit}
-          buttonText={isLoading ? 'Сохранение...' : 'Добавить'}
+          isLoading={isLoadingAddPlacePopup}
         />
 
         <ImagePopup

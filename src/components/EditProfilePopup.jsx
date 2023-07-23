@@ -6,7 +6,7 @@ export default function EditProfilePopup({
   isOpen,
   onClose,
   onUpdateUser,
-  buttonText,
+  isLoading,
 }) {
   const currentUser = React.useContext(CurrentUserContext)
   const [name, setName] = React.useState(currentUser.name)
@@ -39,7 +39,7 @@ export default function EditProfilePopup({
       title="Редактировать профиль"
       name="edit-profile"
       isOpen={isOpen}
-      buttonName={buttonText}
+      buttonName={isLoading ? 'Сохранение...' : 'Сохранить'}
       buttonType="save"
       onClose={onClose}
       onSubmit={handleSubmit}
