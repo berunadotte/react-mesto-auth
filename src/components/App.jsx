@@ -1,4 +1,5 @@
 import React from 'react'
+import { Route, Routes, useNavigate } from 'react-router-dom'
 import { Header } from './Header.jsx'
 import { Main } from './Main.jsx'
 import { Footer } from './Footer.jsx'
@@ -10,7 +11,13 @@ import { apiMesto } from '../utils/api.js'
 import EditProfilePopup from './EditProfilePopup.jsx'
 import EditAvatarPopup from './EditAvatarPopup.jsx'
 import { AddPlacePopup } from './AddPlacePopup.jsx'
-import { Route } from 'react-router-dom'
+import ProtectedRoute from './ProtectedRoute.jsx'
+import Login from './Login.jsx'
+import Register from './Register.jsx'
+import InfoTooltip from './InfoTooltip.jsx'
+import * as authApi from '../utils/authApi.js'
+import registration_error from '../images/registration_error.svg'
+import registration_succes from '../images/registration_succes.svg'
 
 function App() {
   const [isLoading, setIsLoading] = React.useState(false)
@@ -27,6 +34,13 @@ function App() {
     about: 'Исследователь океана',
     avatar: avatar,
   })
+
+  const [loggedIn, setLoggedIn] = React.useState(false)
+  const [message, setMessage] = React.useState({ imgPath: '', text: '' })
+  const [isTooltipOpen, setIsTooltipOpen] = React.useState(false)
+  const [email, setEmail] = React.useState('email')
+
+  const navigate = useNavigate()
 
   function handleEditAvatarClick() {
     setIsEditAvatarPopupOpen(true)
@@ -46,6 +60,7 @@ function App() {
     setIsEditProfilePopupOpen(false)
     setSelectedCard({})
     setIsOpenImage(false)
+    setIsTooltipOpen(false)
   }
 
   function handleCardClick(card) {
@@ -66,7 +81,10 @@ function App() {
 
   function handleSubmit(request) {
     setIsLoading(true)
-    request().then(closeAllPopup).catch(console.error).finally(() => setIsLoading(false))
+    request()
+      .then(closeAllPopup)
+      .catch(console.error)
+      .finally(() => setIsLoading(false))
   }
 
   function handleUpdateUser(inputValues) {
@@ -127,33 +145,107 @@ function App() {
       .catch((err) => {
         console.log(err)
       })
+
+    checkToken()
   }, [])
+
+  function checkToken() {
+    const jwt = localStorage.getItem('jwt')
+
+    if (jwt) {
+      console.log('est jwt')
+      authApi
+        .getContent(jwt)
+        .then((res) => {
+          if (res) {
+            setLoggedIn(true)
+            setEmail(res.data.email)
+            navigate('/')
+          }
+        })
+        .catch((err) => console.log(err))
+    }
+  }
+
+  function handleRegister(email, password) {
+    authApi
+      .register(email, password)
+      .then((res) => {
+        console.log('registration_complete')
+        setEmail(res.data.email)
+        setMessage({
+          imgPath: registration_succes,
+          text: 'Вы успешно зарегистрировались!',
+        })
+        navigate('./sign-in')
+      })
+      .catch(() =>
+        setMessage({
+          imgPath: registration_error,
+          text: 'Что-то пошло не так! Попробуйте еще раз.',
+        })
+      )
+      .finally(() => setIsTooltipOpen(true))
+  }
+
+  function handleLogin(password, email) {
+    authApi
+      .signin(password, email)
+      .then((token) => {
+        authApi.getContent(token).then((res) => {
+          setEmail(res.data.email)
+          setLoggedIn(true)
+          navigate('/')
+        })
+      })
+      .catch((err) => console.log(err))
+  }
+
+  function onSignOut() {
+    localStorage.removeItem('jwt')
+    setLoggedIn(false)
+  }
 
   return (
     <div className="root">
       <CurrentUserContext.Provider value={currentUser}>
-        {/* <Route path='/'></Route>
-        <Route path='/sign-in'></Route>
-        <Route path='/sign-up'></Route> */}
-        <Header />
-        <Main
-          cards={cards}
-          onEditProfile={handleEditProfileClick}
-          onEditAvatar={handleEditAvatarClick}
-          onAddPlace={handleAddPlaceClick}
-          onCardClick={handleCardClick}
-          onCardLike={handleCardLike}
-          onCardDelete={handleCardDelete}
-        />
+        <Header loggedIn={loggedIn} email={email} onSignOut={onSignOut} />
+
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute
+                element={Main}
+                loggedIn={loggedIn}
+                cards={cards}
+                onEditProfile={handleEditProfileClick}
+                onEditAvatar={handleEditAvatarClick}
+                onAddPlace={handleAddPlaceClick}
+                onCardClick={handleCardClick}
+                onCardLike={handleCardLike}
+                onCardDelete={handleCardDelete}
+              />
+            }
+          />
+          <Route
+            path="/sign-in"
+            element={
+              <Login onLogin={handleLogin} isTooltipOpen={isTooltipOpen} />
+            }
+          />
+          <Route
+            path="/sign-up"
+            element={
+              <Register
+                onRegister={handleRegister}
+                isTooltipOpen={isTooltipOpen}
+              />
+            }
+          />
+        </Routes>
+
         <Footer />
-
-        <div className='signup'>
-          <h2 className='signup__header'>Регистрация</h2>
-          <input type="form" className='signup__form_email' />
-          <input type="form" className='signup__form_password' />
-        </div>
-
-
 
         <EditProfilePopup
           isOpen={isEditProfilePopupOpen}
@@ -193,6 +285,14 @@ function App() {
           card={selectedCard}
           onClose={closeAllPopup}
           isOpen={isOpenImage}
+        />
+
+        <InfoTooltip
+          name="tooltip"
+          isOpen={isTooltipOpen}
+          onClose={closeAllPopup}
+          title={message.text}
+          imgPath={message.imgPath}
         />
       </CurrentUserContext.Provider>
     </div>

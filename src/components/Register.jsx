@@ -1,20 +1,51 @@
-export default function Register() {
+import React, { useState } from 'react'
+import { Link } from 'react-router-dom'
+
+export default function Register({ onRegister }) {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+
+  function handleChangeEmail(e) {
+    setEmail(e.target.value)
+  }
+
+  function handleChangePassword(e) {
+    setPassword(e.target.value)
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault()
+    onRegister(password, email)
+  }
 
   return (
-    <div class="signup">
-      <h2 class="signup__title">Регистрация</h2>
-      <input
-        class="signup__form signup__form__email"
-        type="email"
-        placeholder="Email"
-      />
-      <input
-        class="signup__form signup__form__password"
-        type="password"
-        placeholder="Password"
-      />
-      <button class="signup__button">Зарегистрироваться</button>
-      <button class="signup__button_login">Уже зарегистрированы? Войти</button>
+    <div className="register">
+      <h2 className="register__title">Регистрация</h2>
+      <form
+        name="register"
+        className="register__form"
+        noValidate
+        onSubmit={handleSubmit}
+      >
+        <input
+          className="register__input register__input_email"
+          type="email"
+          placeholder="Email"
+          onChange={handleChangeEmail}
+        />
+        <input
+          className="register__input register__input_password"
+          type="password"
+          placeholder="Password"
+          onChange={handleChangePassword}
+        />
+        <button type="submit" className="register__button">
+          Зарегистрироваться
+        </button>
+      </form>
+      <Link to="/sign-in" className="register__button_login">
+        Уже зарегистрированы? Войти
+      </Link>
     </div>
   )
 }

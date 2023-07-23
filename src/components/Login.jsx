@@ -1,19 +1,47 @@
-export default function Login() {
+import React from 'react'
+
+export default function Login({ onLogin, isTooltipOpen }) {
+  const [email, setEmail] = React.useState('')
+  const [password, setPassword] = React.useState('')
+
+  function handleChangeEmail(e) {
+    setEmail(e.target.value)
+  }
+
+  function handleChangePassword(e) {
+    setPassword(e.target.value)
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault()
+    onLogin(password, email)
+  }
 
   return (
     <div className="login">
       <h2 className="login__title">Вход</h2>
-      <input
-        className="login__form login__form__email"
-        type="email"
-        placeholder="Email"
-      />
-      <input
-        className="login__form login__form__password"
-        type="password"
-        placeholder="Password"
-      />
-      <button className="login__button">Войти</button>
+      <form
+        name="register"
+        className="register__form"
+        noValidate
+        onSubmit={handleSubmit}
+      >
+        <input
+          className="login__form login__form_email"
+          type="email"
+          placeholder="Email"
+          onChange={handleChangeEmail}
+        />
+        <input
+          className="login__form login__form_password"
+          type="password"
+          placeholder="Password"
+          onChange={handleChangePassword}
+        />
+        <button type="submit" className="login__button">
+          Войти
+        </button>
+      </form>
     </div>
   )
 }
