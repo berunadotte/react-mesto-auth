@@ -5,7 +5,7 @@ export default function EditAvatarPopup({
   isOpen,
   onClose,
   onUpdateAvatar,
-  isLoading,
+  buttonText,
 }) {
   const avatarRef = React.useRef()
 
@@ -25,7 +25,7 @@ export default function EditAvatarPopup({
     <PopupWithForm
       title="Обновить аватар"
       name="update_avatar"
-      buttonName={isLoading ? 'Сохранение...' : 'Сохранить'}
+      buttonName={buttonText}
       buttonType="save"
       isOpen={isOpen}
       onClose={onClose}

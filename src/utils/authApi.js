@@ -17,7 +17,7 @@ export function register(password, email) {
   }).then(checkResponse)
 }
 
-export function signin(password, email) {
+export function signIn(password, email) {
   return fetch(`${baseUrl}/signin`, {
     method: 'POST',
     headers: {
@@ -35,7 +35,7 @@ export function signin(password, email) {
   // .catch(checkResponse)
 }
 
-export function getContent(token) {
+export function checkToken(token) {
   return fetch(`${baseUrl}/users/me`, {
     method: 'GET',
     headers: {

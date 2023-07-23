@@ -28,12 +28,14 @@ export default function Register({ onRegister }) {
         onSubmit={handleSubmit}
       >
         <input
+          value={email}
           className="register__input register__input_email"
           type="email"
           placeholder="Email"
           onChange={handleChangeEmail}
         />
         <input
+          value={password}
           className="register__input register__input_password"
           type="password"
           placeholder="Password"

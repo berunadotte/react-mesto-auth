@@ -1,10 +1,9 @@
 import React from 'react'
-import { Route, Routes, useNavigate } from 'react-router-dom'
+import { Route, Routes, useNavigate, Navigate } from 'react-router-dom'
 import { Header } from './Header.jsx'
 import { Main } from './Main.jsx'
 import { Footer } from './Footer.jsx'
 import avatar from '../images/avatar_photo.png'
-import PopupWithForm from './PopupWithForm.jsx'
 import ImagePopup from './ImagePopup.jsx'
 import { CurrentUserContext } from '../contexts/CurrentUserContext.js'
 import { apiMesto } from '../utils/api.js'
@@ -16,8 +15,8 @@ import Login from './Login.jsx'
 import Register from './Register.jsx'
 import InfoTooltip from './InfoTooltip.jsx'
 import * as authApi from '../utils/authApi.js'
-import registration_error from '../images/registration_error.svg'
-import registration_succes from '../images/registration_succes.svg'
+import registrationError from '../images/registration_error.svg'
+import registrationSucces from '../images/registration_succes.svg'
 
 function App() {
   const [isLoading, setIsLoading] = React.useState(false)
@@ -36,9 +35,12 @@ function App() {
   })
 
   const [loggedIn, setLoggedIn] = React.useState(false)
-  const [message, setMessage] = React.useState({ imgPath: '', text: '' })
+  const [infoTooltipMessage, setInfoTooltipMessage] = React.useState({
+    imgPath: '',
+    text: '',
+  })
   const [isTooltipOpen, setIsTooltipOpen] = React.useState(false)
-  const [email, setEmail] = React.useState('email')
+  const [email, setEmail] = React.useState('')
 
   const navigate = useNavigate()
 
@@ -128,34 +130,26 @@ function App() {
   }
 
   React.useEffect(() => {
-    apiMesto
-      .loadNameAndInfo()
-      .then((data) => {
-        setCurrentUser(data)
-      })
-      .catch((err) => {
-        console.log(err)
-      })
-
-    apiMesto
-      .getInitialCards()
-      .then((data) => {
-        setCards(data)
-      })
-      .catch((err) => {
-        console.log(err)
-      })
-
     checkToken()
-  }, [])
+
+    if (loggedIn) {
+      Promise.all([apiMesto.loadNameAndInfo(), apiMesto.getInitialCards()])
+        .then((data) => {
+          setCurrentUser(data[0])
+          setCards(data[1])
+        })
+        .catch((err) => {
+          console.log(err)
+        })
+    }
+  }, [loggedIn])
 
   function checkToken() {
     const jwt = localStorage.getItem('jwt')
 
     if (jwt) {
-      console.log('est jwt')
       authApi
-        .getContent(jwt)
+        .checkToken(jwt)
         .then((res) => {
           if (res) {
             setLoggedIn(true)
@@ -170,18 +164,16 @@ function App() {
   function handleRegister(email, password) {
     authApi
       .register(email, password)
-      .then((res) => {
-        console.log('registration_complete')
-        setEmail(res.data.email)
-        setMessage({
-          imgPath: registration_succes,
+      .then(() => {
+        setInfoTooltipMessage({
+          imgPath: registrationSucces,
           text: 'Вы успешно зарегистрировались!',
         })
         navigate('./sign-in')
       })
       .catch(() =>
-        setMessage({
-          imgPath: registration_error,
+        setInfoTooltipMessage({
+          imgPath: registrationError,
           text: 'Что-то пошло не так! Попробуйте еще раз.',
         })
       )
@@ -190,13 +182,11 @@ function App() {
 
   function handleLogin(password, email) {
     authApi
-      .signin(password, email)
-      .then((token) => {
-        authApi.getContent(token).then((res) => {
-          setEmail(res.data.email)
-          setLoggedIn(true)
-          navigate('/')
-        })
+      .signIn(password, email)
+      .then(() => {
+        setEmail(email)
+        setLoggedIn(true)
+        navigate('/')
       })
       .catch((err) => console.log(err))
   }
@@ -204,6 +194,7 @@ function App() {
   function onSignOut() {
     localStorage.removeItem('jwt')
     setLoggedIn(false)
+    setEmail('')
   }
 
   return (
@@ -243,6 +234,7 @@ function App() {
               />
             }
           />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
 
         <Footer />
@@ -252,6 +244,7 @@ function App() {
           onClose={closeAllPopup}
           onUpdateUser={handleUpdateUser}
           isLoading={isLoading}
+          buttonText={isLoading ? 'Сохранение...' : 'Сохранить'}
         />
 
         <EditAvatarPopup
@@ -259,27 +252,15 @@ function App() {
           onClose={closeAllPopup}
           onUpdateAvatar={handleUpdateAvatar}
           isLoading={isLoading}
+          buttonText={isLoading ? 'Сохранение...' : 'Сохранить'}
         />
 
         <AddPlacePopup
           isOpen={isAddPlacePopupOpen}
           onClose={closeAllPopup}
           onAddPlace={handleAddPlaceSubmit}
-          isLoading={isLoading}
+          buttonText={isLoading ? 'Сохранение...' : 'Добавить'}
         />
-
-        <PopupWithForm
-          title="Вы уверены?"
-          name="before_deleting"
-          buttonName="Вы уверены"
-          onClose={closeAllPopup}
-        >
-          <h2 className="popup__header">Вы уверены?</h2>
-          <button type="submit" className="popup__delete-button submit-button">
-            Да
-          </button>
-          <button type="button" className="popup__close-button"></button>
-        </PopupWithForm>
 
         <ImagePopup
           card={selectedCard}
@@ -291,8 +272,8 @@ function App() {
           name="tooltip"
           isOpen={isTooltipOpen}
           onClose={closeAllPopup}
-          title={message.text}
-          imgPath={message.imgPath}
+          title={infoTooltipMessage.text}
+          imgPath={infoTooltipMessage.imgPath}
         />
       </CurrentUserContext.Provider>
     </div>

@@ -1,6 +1,6 @@
 import React from 'react'
 
-export default function Login({ onLogin, isTooltipOpen }) {
+export default function Login({ onLogin }) {
   const [email, setEmail] = React.useState('')
   const [password, setPassword] = React.useState('')
 
@@ -27,12 +27,14 @@ export default function Login({ onLogin, isTooltipOpen }) {
         onSubmit={handleSubmit}
       >
         <input
+          value={email}
           className="login__form login__form_email"
           type="email"
           placeholder="Email"
           onChange={handleChangeEmail}
         />
         <input
+          value={password}
           className="login__form login__form_password"
           type="password"
           placeholder="Password"
